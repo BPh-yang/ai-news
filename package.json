@@ -1,0 +1,28 @@
+{
+  "name": "ai-news-daily",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Daily AI news site generator powered by RSS feeds.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsx src/build.ts",
+    "schedule": "tsx src/scheduler.ts",
+    "preview": "tsx src/serve.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "node-cron": "^4.2.1",
+    "rss-parser": "^3.13.0",
+    "sanitize-html": "^2.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "@types/sanitize-html": "^2.16.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
