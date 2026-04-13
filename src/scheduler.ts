@@ -20,7 +20,7 @@ export async function startScheduler(): Promise<void> {
       try {
         const output = await buildSite();
         console.log(
-          `[scheduler] Build completed. Latest issue: ${output.issues[0]?.title ?? "unknown"}.`
+          `[scheduler] Build completed. Latest edition: ${output.editions[0]?.title ?? "unknown"}.`
         );
       } catch (error: unknown) {
         console.error("[scheduler] Scheduled build failed.");

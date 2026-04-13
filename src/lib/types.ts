@@ -10,7 +10,7 @@ export type RawFeedItem = {
   [key: string]: unknown;
 };
 
-export type NewsIssue = {
+export type NewsEdition = {
   id: string;
   slug: string;
   sourceId: string;
@@ -27,7 +27,7 @@ export type NewsIssue = {
 
 export type BuildOutput = {
   generatedAt: string;
-  issueCount: number;
-  latestIssueSlug: string;
-  issues: NewsIssue[];
+  editionCount: number;
+  latestEditionSlug: string;
+  editions: NewsEdition[];
 };

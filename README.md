@@ -7,7 +7,7 @@
 - 支持通过 `src/config/feeds.ts` 配置多个 RSS 源
 - 抓取 RSS 后生成标准化数据
 - 输出一个偏编辑部风格的静态页面到 `dist/`
-- 生成每期单独详情页与 `dist/data/issues.json`
+- 生成每期单独详情页与 `dist/data/editions.json`
 - 提供本地预览服务
 - 提供本地定时任务脚本（每天早上 8 点，Asia/Shanghai）
 - 提供 GitHub Actions 定时工作流（UTC 00:00，对应北京时间 08:00）
@@ -51,11 +51,6 @@ npm run preview
 ```ts
 export const feeds = [
   {
-    id: "juya-ai-daily",
-    title: "橘鸦 AI 早报",
-    url: "https://imjuya.github.io/juya-ai-daily/rss.xml"
-  },
-  {
     id: "another-feed",
     title: "Another Feed",
     url: "https://example.com/rss.xml"
@@ -80,15 +75,15 @@ export const feeds = [
 ```text
 dist/
   index.html
-  issues/
-    issue-57.html
-    issue-56.html
+  editions/
+    edition-57.html
+    edition-56.html
   assets/
     styles.css
   data/
-    issues.json
+    editions.json
 data/
-  issues.json
+  editions.json
 ```
 
 ## 说明

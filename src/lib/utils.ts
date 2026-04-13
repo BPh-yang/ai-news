@@ -15,7 +15,7 @@ export function slugify(input: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
-  return value || "issue";
+  return value || "edition";
 }
 
 export function stripHtml(input: string): string {

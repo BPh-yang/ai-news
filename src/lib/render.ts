@@ -1,5 +1,5 @@
 import { siteConfig } from "../config/feeds.js";
-import type { BuildOutput, NewsIssue } from "./types.js";
+import type { BuildOutput, NewsEdition } from "./types.js";
 import { escapeHtml, formatDate, formatDateShort } from "./utils.js";
 
 function pageShell({
@@ -7,13 +7,13 @@ function pageShell({
   description,
   stylesheetPath,
   body,
-  latestIssue
+  latestEdition
 }: {
   title: string;
   description: string;
   stylesheetPath: string;
   body: string;
-  latestIssue: NewsIssue;
+  latestEdition: NewsEdition;
 }): string {
   return `<!doctype html>
 <html lang="zh-CN">
@@ -27,8 +27,8 @@ function pageShell({
     <meta property="og:type" content="website" />
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     ${
-      latestIssue.coverImage
-        ? `<meta property="og:image" content="${escapeHtml(latestIssue.coverImage)}" />`
+      latestEdition.coverImage
+        ? `<meta property="og:image" content="${escapeHtml(latestEdition.coverImage)}" />`
         : ""
     }
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,17 +42,17 @@ function pageShell({
 </html>`;
 }
 
-function renderIssueCards(issues: NewsIssue[]): string {
-  return issues
+function renderEditionCards(editions: NewsEdition[], basePath: string): string {
+  return editions
     .map(
-      (issue) => `
-        <a class="issue-card" href="./issues/${encodeURIComponent(issue.slug)}.html">
-          <div class="issue-card__meta">
-            <span>${escapeHtml(formatDateShort(issue.publishedAt, siteConfig.locale))}</span>
+      (edition) => `
+        <a class="edition-card" href="${basePath}${encodeURIComponent(edition.slug)}.html">
+          <div class="edition-card__meta">
+            <span>${escapeHtml(formatDateShort(edition.publishedAt, siteConfig.locale))}</span>
           </div>
-          <h3>${escapeHtml(issue.title)}</h3>
-          <p>${escapeHtml(issue.summary)}</p>
-          <span class="issue-card__link">查看详情</span>
+          <h3>${escapeHtml(edition.title)}</h3>
+          <p>${escapeHtml(edition.summary)}</p>
+          <span class="edition-card__link">查看详情</span>
         </a>
       `
     )
@@ -60,8 +60,8 @@ function renderIssueCards(issues: NewsIssue[]): string {
 }
 
 export function renderIndexPage(output: BuildOutput): string {
-  const latestIssue = output.issues[0];
-  const archiveIssues = output.issues.slice(1);
+  const latestEdition = output.editions[0];
+  const archiveEditions = output.editions.slice(1);
 
   const body = `
     <div class="site-shell">
@@ -83,7 +83,7 @@ export function renderIndexPage(output: BuildOutput): string {
             </div>
             <div>
               <span>收录期数</span>
-              <strong>${output.issueCount}</strong>
+              <strong>${output.editionCount}</strong>
             </div>
             <div>
               <span>更新计划</span>
@@ -97,16 +97,16 @@ export function renderIndexPage(output: BuildOutput): string {
         <section class="feature-panel">
           <div class="feature-panel__header">
             <div>
-              <p class="section-kicker">Latest issue</p>
-              <h2>${escapeHtml(latestIssue.title)}</h2>
+              <p class="section-kicker">Latest</p>
+              <h2>${escapeHtml(latestEdition.title)}</h2>
             </div>
-            <a class="ghost-link" href="./issues/${encodeURIComponent(latestIssue.slug)}.html">打开完整页</a>
+            <a class="ghost-link" href="./editions/${encodeURIComponent(latestEdition.slug)}.html">打开完整页</a>
           </div>
           <div class="feature-panel__meta">
-            <span>${escapeHtml(formatDate(latestIssue.publishedAt, siteConfig.locale))}</span>
+            <span>${escapeHtml(formatDate(latestEdition.publishedAt, siteConfig.locale))}</span>
           </div>
-          <p class="feature-panel__summary">${escapeHtml(latestIssue.summary)}</p>
-          <article class="issue-content">${latestIssue.contentHtml}</article>
+          <p class="feature-panel__summary">${escapeHtml(latestEdition.summary)}</p>
+          <article class="edition-content">${latestEdition.contentHtml}</article>
         </section>
 
         <aside class="archive-panel">
@@ -115,8 +115,11 @@ export function renderIndexPage(output: BuildOutput): string {
               <p class="section-kicker">Archive</p>
               <h2>往期日报</h2>
             </div>
-            <div class="issue-grid">
-              ${renderIssueCards(archiveIssues.length > 0 ? archiveIssues : [latestIssue])}
+            <div class="edition-grid">
+              ${renderEditionCards(
+                archiveEditions.length > 0 ? archiveEditions : [latestEdition],
+                "./editions/"
+              )}
             </div>
           </div>
         </aside>
@@ -125,16 +128,16 @@ export function renderIndexPage(output: BuildOutput): string {
   `;
 
   return pageShell({
-    title: `${latestIssue.title} · ${siteConfig.title}`,
-    description: latestIssue.summary || siteConfig.description,
+    title: `${latestEdition.title} · ${siteConfig.title}`,
+    description: latestEdition.summary || siteConfig.description,
     stylesheetPath: "./assets/styles.css",
     body,
-    latestIssue
+    latestEdition
   });
 }
 
-export function renderIssuePage(issue: NewsIssue, allIssues: NewsIssue[]): string {
-  const related = allIssues.filter((candidate) => candidate.id !== issue.id).slice(0, 6);
+export function renderEditionPage(edition: NewsEdition, allEditions: NewsEdition[]): string {
+  const archiveEditions = allEditions.filter((candidate) => candidate.id !== edition.id).slice(0, 6);
   const body = `
     <div class="site-shell site-shell--detail">
       <div class="site-shell__grain"></div>
@@ -142,26 +145,26 @@ export function renderIssuePage(issue: NewsIssue, allIssues: NewsIssue[]): strin
         <a class="ghost-link" href="../index.html">← 返回首页</a>
         <div class="detail-hero__copy">
           <p class="hero__brand">${escapeHtml(siteConfig.title)}</p>
-          <h1>${escapeHtml(issue.title)}</h1>
-          <p class="hero__lead">${escapeHtml(issue.summary)}</p>
+          <h1>${escapeHtml(edition.title)}</h1>
+          <p class="hero__lead">${escapeHtml(edition.summary)}</p>
           <div class="feature-panel__meta">
-            <span>${escapeHtml(formatDate(issue.publishedAt, siteConfig.locale))}</span>
+            <span>${escapeHtml(formatDate(edition.publishedAt, siteConfig.locale))}</span>
           </div>
         </div>
       </header>
 
       <main class="layout layout--detail">
         <section class="feature-panel">
-          <article class="issue-content">${issue.contentHtml}</article>
+          <article class="edition-content">${edition.contentHtml}</article>
         </section>
         <aside class="archive-panel">
           <div class="archive-panel__sticky">
             <div class="archive-panel__header">
-              <p class="section-kicker">More issues</p>
-              <h2>继续阅读</h2>
+              <p class="section-kicker">Archive</p>
+              <h2>往期日报</h2>
             </div>
-            <div class="issue-grid">
-              ${renderIssueCards(related)}
+            <div class="edition-grid">
+              ${renderEditionCards(archiveEditions, "./")}
             </div>
           </div>
         </aside>
@@ -170,11 +173,11 @@ export function renderIssuePage(issue: NewsIssue, allIssues: NewsIssue[]): strin
   `;
 
   return pageShell({
-    title: `${issue.title} · ${siteConfig.title}`,
-    description: issue.summary || siteConfig.description,
+    title: `${edition.title} · ${siteConfig.title}`,
+    description: edition.summary || siteConfig.description,
     stylesheetPath: "../assets/styles.css",
     body,
-    latestIssue: issue
+    latestEdition: edition
   });
 }
 
@@ -303,7 +306,7 @@ img {
 .detail-hero h1,
 .archive-panel h2,
 .feature-panel h2,
-.issue-card h3 {
+.edition-card h3 {
   margin: 0;
   font-family: "Noto Serif SC", serif;
   line-height: 1.1;
@@ -321,7 +324,7 @@ img {
 
 .hero__lead,
 .feature-panel__summary,
-.issue-card p {
+.edition-card p {
   color: var(--muted);
   line-height: 1.8;
 }
@@ -351,7 +354,7 @@ img {
 
 .hero__stats span,
 .feature-panel__meta,
-.issue-card__meta,
+.edition-card__meta,
 .ghost-link {
   color: var(--muted);
   font-size: 0.92rem;
@@ -397,67 +400,67 @@ img {
 
 .feature-panel__meta a,
 .ghost-link,
-.issue-card__link {
+.edition-card__link {
   text-decoration: none;
   color: var(--accent);
 }
 
-.issue-content {
+.edition-content {
   margin-top: 26px;
 }
 
-.issue-content > :first-child {
+.edition-content > :first-child {
   margin-top: 0;
 }
 
-.issue-content h1,
-.issue-content h2,
-.issue-content h3,
-.issue-content h4 {
+.edition-content h1,
+.edition-content h2,
+.edition-content h3,
+.edition-content h4 {
   margin: 1.8em 0 0.55em;
   font-family: "Noto Serif SC", serif;
   line-height: 1.24;
 }
 
-.issue-content h1 {
+.edition-content h1 {
   font-size: clamp(2rem, 3vw, 2.8rem);
 }
 
-.issue-content h2 {
+.edition-content h2 {
   padding-top: 18px;
   border-top: 1px solid var(--line);
   font-size: clamp(1.45rem, 2.4vw, 2rem);
 }
 
-.issue-content h3 {
+.edition-content h3 {
   font-size: 1.24rem;
 }
 
-.issue-content p,
-.issue-content li,
-.issue-content blockquote {
+.edition-content p,
+.edition-content li,
+.edition-content blockquote {
   color: rgba(245, 239, 227, 0.9);
   line-height: 1.9;
   font-size: 1rem;
 }
 
-.issue-content ul,
-.issue-content ol {
+.edition-content ul,
+.edition-content ol {
   padding-left: 1.4rem;
 }
 
-.issue-content li + li {
+.edition-content li + li {
   margin-top: 0.5rem;
 }
 
-.issue-content img {
+.edition-content img {
   margin: 24px 0;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.26);
 }
 
-.issue-content blockquote {
+.edition-content blockquote {
   margin: 20px 0;
   padding: 18px 20px;
   border-left: 3px solid var(--accent);
@@ -465,7 +468,7 @@ img {
   border-radius: 0 16px 16px 0;
 }
 
-.issue-content code {
+.edition-content code {
   padding: 0.15rem 0.4rem;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
@@ -473,7 +476,7 @@ img {
   font-size: 0.92em;
 }
 
-.issue-content pre {
+.edition-content pre {
   overflow-x: auto;
   padding: 16px;
   border-radius: 16px;
@@ -486,13 +489,13 @@ img {
   padding: 24px;
 }
 
-.issue-grid {
+.edition-grid {
   display: grid;
   gap: 14px;
   margin-top: 18px;
 }
 
-.issue-card {
+.edition-card {
   position: relative;
   display: block;
   padding: 18px;
@@ -503,29 +506,29 @@ img {
   transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
-.issue-card:hover {
+.edition-card:hover {
   transform: translateY(-2px);
   border-color: rgba(243, 166, 90, 0.45);
   background: linear-gradient(180deg, rgba(243, 166, 90, 0.08), rgba(255, 255, 255, 0.03));
 }
 
-.issue-card__meta {
+.edition-card__meta {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.issue-card__source {
+.edition-card__source {
   color: var(--accent-2);
 }
 
-.issue-card h3 {
+.edition-card h3 {
   margin-bottom: 10px;
   font-size: 1.18rem;
 }
 
-.issue-card p {
+.edition-card p {
   margin: 0 0 12px;
   font-size: 0.94rem;
 }
@@ -564,7 +567,7 @@ img {
 
   .feature-panel__header,
   .archive-panel__header,
-  .issue-card__meta,
+  .edition-card__meta,
   .feature-panel__meta {
     flex-direction: column;
     align-items: start;

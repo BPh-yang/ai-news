@@ -3,30 +3,30 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import { feeds } from "./config/feeds.js";
-import { renderIndexPage, renderIssuePage, renderStyles } from "./lib/render.js";
-import { fetchIssues } from "./lib/rss.js";
+import { renderEditionPage, renderIndexPage, renderStyles } from "./lib/render.js";
+import { fetchEditions } from "./lib/rss.js";
 import type { BuildOutput } from "./lib/types.js";
 import { writeJsonFile, writeTextFile } from "./lib/utils.js";
 
 const projectRoot = process.cwd();
 
 export async function buildSite(): Promise<BuildOutput> {
-  const issues = await fetchIssues(feeds);
+  const editions = await fetchEditions(feeds);
 
-  if (issues.length === 0) {
-    throw new Error("No RSS items were fetched. Build aborted.");
+  if (editions.length === 0) {
+    throw new Error("No RSS entries were fetched. Build aborted.");
   }
 
   const output: BuildOutput = {
     generatedAt: new Date().toISOString(),
-    issueCount: issues.length,
-    latestIssueSlug: issues[0].slug,
-    issues
+    editionCount: editions.length,
+    latestEditionSlug: editions[0].slug,
+    editions
   };
 
   const distDir = path.join(projectRoot, "dist");
-  const sharedDataPath = path.join(projectRoot, "data", "issues.json");
-  const distDataPath = path.join(distDir, "data", "issues.json");
+  const sharedDataPath = path.join(projectRoot, "data", "editions.json");
+  const distDataPath = path.join(distDir, "data", "editions.json");
   const stylesheetPath = path.join(distDir, "assets", "styles.css");
   const indexPath = path.join(distDir, "index.html");
 
@@ -38,10 +38,10 @@ export async function buildSite(): Promise<BuildOutput> {
   ]);
 
   await Promise.all(
-    issues.map((issue) =>
+    editions.map((edition) =>
       writeTextFile(
-        path.join(distDir, "issues", `${issue.slug}.html`),
-        renderIssuePage(issue, issues)
+        path.join(distDir, "editions", `${edition.slug}.html`),
+        renderEditionPage(edition, editions)
       )
     )
   );
@@ -51,10 +51,10 @@ export async function buildSite(): Promise<BuildOutput> {
 
 async function run(): Promise<void> {
   const output = await buildSite();
-  const latestIssue = output.issues[0];
+  const latestEdition = output.editions[0];
 
   console.log(
-    `[build] Generated ${output.issueCount} issues. Latest: ${latestIssue.title} (${latestIssue.slug}).`
+    `[build] Generated ${output.editionCount} editions. Latest: ${latestEdition.title} (${latestEdition.slug}).`
   );
 }
 

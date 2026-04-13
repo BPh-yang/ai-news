@@ -2,7 +2,7 @@ import Parser from "rss-parser";
 import sanitizeHtml from "sanitize-html";
 
 import type { FeedDefinition } from "../config/feeds.js";
-import type { NewsIssue, RawFeedItem } from "./types.js";
+import type { NewsEdition, RawFeedItem } from "./types.js";
 import {
   createContentHash,
   extractCoverImage,
@@ -108,7 +108,7 @@ export function cleanFeedText(feed: FeedDefinition, text: string): string {
     .trim();
 }
 
-function normalizeIssue(feed: FeedDefinition, item: RawFeedItem, fetchedAt: string): NewsIssue {
+function normalizeEdition(feed: FeedDefinition, item: RawFeedItem, fetchedAt: string): NewsEdition {
   const title = cleanFeedText(feed, item.title?.trim() || "未命名期刊");
   const link = item.link?.trim() || "#";
   const guid = item.guid?.trim() || link || title;
@@ -145,22 +145,22 @@ function normalizeIssue(feed: FeedDefinition, item: RawFeedItem, fetchedAt: stri
   };
 }
 
-export async function fetchIssues(feeds: FeedDefinition[]): Promise<NewsIssue[]> {
+export async function fetchEditions(feeds: FeedDefinition[]): Promise<NewsEdition[]> {
   const fetchedAt = new Date().toISOString();
-  const issues: NewsIssue[] = [];
+  const editions: NewsEdition[] = [];
 
   for (const feed of feeds) {
     const parsed = await parser.parseURL(feed.url);
     for (const item of parsed.items) {
-      issues.push(normalizeIssue(feed, item, fetchedAt));
+      editions.push(normalizeEdition(feed, item, fetchedAt));
     }
   }
 
-  const deduped = new Map<string, NewsIssue>();
-  for (const issue of issues) {
-    const dedupeKey = issue.guid || `${issue.link}:${issue.publishedAt}`;
+  const deduped = new Map<string, NewsEdition>();
+  for (const edition of editions) {
+    const dedupeKey = edition.guid || `${edition.link}:${edition.publishedAt}`;
     if (!deduped.has(dedupeKey)) {
-      deduped.set(dedupeKey, issue);
+      deduped.set(dedupeKey, edition);
     }
   }
 

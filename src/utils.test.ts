@@ -10,7 +10,7 @@ import {
 } from "./lib/utils.js";
 
 test("slugify keeps chinese text and normalizes separators", () => {
-  assert.equal(slugify("AI 早报 / Issue #57"), "ai-早报-issue-57");
+  assert.equal(slugify("AI 早报 / Edition #57"), "ai-早报-edition-57");
 });
 
 test("stripHtml removes tags and normalizes whitespace", () => {
@@ -27,5 +27,5 @@ test("extractCoverImage prefers https image when available", () => {
 });
 
 test("getPreferredSlug uses link path when possible", () => {
-  assert.equal(getPreferredSlug("https://example.com/issues/issue-57/", "fallback"), "issue-57");
+  assert.equal(getPreferredSlug("https://example.com/editions/edition-57/", "fallback"), "edition-57");
 });
