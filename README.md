@@ -10,7 +10,7 @@
 - 生成每期单独详情页与 `dist/data/editions.json`
 - 提供本地预览服务
 - 提供本地定时任务脚本（每天早上 8 点，Asia/Shanghai）
-- 提供 GitHub Actions 定时工作流（UTC 00:00，对应北京时间 08:00）
+- 提供 GitHub Actions 定时工作流（以北京时间早上 8 点为目标，并避开 GitHub 定时任务延迟）
 
 ## 快速开始
 
@@ -68,7 +68,7 @@ export const feeds = [
 2. 将 **Build and deployment** 设置为 **GitHub Actions**
 3. 保持默认分支为 `main`
 
-之后工作流会每天北京时间 8 点构建并发布最新静态页面。
+之后工作流会以北京时间早上 8 点为目标构建并发布最新静态页面。
 
 ## 输出结构
 

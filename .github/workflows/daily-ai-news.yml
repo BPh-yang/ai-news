@@ -3,7 +3,9 @@ name: Daily AI News
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"
+    # GitHub scheduled jobs on this repo are currently landing roughly 2h45m late,
+    # so the cron is moved earlier to keep the effective run close to Beijing 08:00.
+    - cron: "15 21 * * *"
 
 permissions:
   contents: read
