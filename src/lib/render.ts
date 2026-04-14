@@ -48,7 +48,7 @@ function renderEditionCards(editions: NewsEdition[], basePath: string): string {
       (edition) => `
         <a class="edition-card" href="${basePath}${encodeURIComponent(edition.slug)}.html">
           <div class="edition-card__meta">
-            <span>${escapeHtml(formatDateShort(edition.publishedAt, siteConfig.locale))}</span>
+            <span>${escapeHtml(formatDateShort(edition.publishedAt, siteConfig.locale, siteConfig.timezone))}</span>
           </div>
           <h3>${escapeHtml(edition.title)}</h3>
           <p>${escapeHtml(edition.summary)}</p>
@@ -79,7 +79,7 @@ export function renderIndexPage(output: BuildOutput): string {
           <div class="hero__stats">
             <div>
               <span>最新更新时间</span>
-              <strong>${escapeHtml(formatDate(output.generatedAt, siteConfig.locale))}</strong>
+              <strong>${escapeHtml(formatDate(output.generatedAt, siteConfig.locale, siteConfig.timezone))}</strong>
             </div>
             <div>
               <span>收录期数</span>
@@ -103,7 +103,7 @@ export function renderIndexPage(output: BuildOutput): string {
             <a class="ghost-link" href="./editions/${encodeURIComponent(latestEdition.slug)}.html">打开完整页</a>
           </div>
           <div class="feature-panel__meta">
-            <span>${escapeHtml(formatDate(latestEdition.publishedAt, siteConfig.locale))}</span>
+            <span>${escapeHtml(formatDate(latestEdition.publishedAt, siteConfig.locale, siteConfig.timezone))}</span>
           </div>
           <p class="feature-panel__summary">${escapeHtml(latestEdition.summary)}</p>
           <article class="edition-content">${latestEdition.contentHtml}</article>
@@ -148,7 +148,7 @@ export function renderEditionPage(edition: NewsEdition, allEditions: NewsEdition
           <h1>${escapeHtml(edition.title)}</h1>
           <p class="hero__lead">${escapeHtml(edition.summary)}</p>
           <div class="feature-panel__meta">
-            <span>${escapeHtml(formatDate(edition.publishedAt, siteConfig.locale))}</span>
+            <span>${escapeHtml(formatDate(edition.publishedAt, siteConfig.locale, siteConfig.timezone))}</span>
           </div>
         </div>
       </header>
@@ -184,16 +184,16 @@ export function renderEditionPage(edition: NewsEdition, allEditions: NewsEdition
 export function renderStyles(): string {
   return `
 :root {
-  --bg: #0b1119;
-  --bg-soft: rgba(18, 26, 38, 0.84);
-  --panel: rgba(14, 19, 31, 0.78);
-  --panel-strong: rgba(8, 12, 20, 0.92);
-  --line: rgba(255, 255, 255, 0.12);
-  --text: #f5efe3;
-  --muted: rgba(245, 239, 227, 0.7);
-  --accent: #f3a65a;
-  --accent-2: #8dc6ff;
-  --shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+  --bg: #f7f1e7;
+  --bg-soft: rgba(255, 251, 245, 0.88);
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-strong: rgba(251, 244, 235, 0.96);
+  --line: rgba(38, 52, 72, 0.14);
+  --text: #1f2833;
+  --muted: rgba(31, 40, 51, 0.7);
+  --accent: #b96a2f;
+  --accent-2: #2c6ca1;
+  --shadow: 0 24px 72px rgba(130, 101, 67, 0.16);
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 16px;
@@ -213,9 +213,9 @@ body {
   min-height: 100vh;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(243, 166, 90, 0.18), transparent 25%),
-    radial-gradient(circle at top right, rgba(141, 198, 255, 0.16), transparent 30%),
-    linear-gradient(135deg, #06080d 0%, #0c1420 45%, #111a27 100%);
+    radial-gradient(circle at top left, rgba(185, 106, 47, 0.14), transparent 25%),
+    radial-gradient(circle at top right, rgba(44, 108, 161, 0.12), transparent 30%),
+    linear-gradient(135deg, #fbf7f0 0%, #f7f1e7 46%, #efe2cf 100%);
   font-family: "Noto Sans SC", sans-serif;
 }
 
@@ -223,8 +223,8 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(31, 40, 51, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 40, 51, 0.03) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
   pointer-events: none;
@@ -261,7 +261,7 @@ img {
   padding: 36px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: linear-gradient(145deg, rgba(11, 17, 25, 0.95), rgba(18, 31, 45, 0.72));
+  background: linear-gradient(145deg, rgba(255, 252, 247, 0.98), rgba(243, 234, 223, 0.92));
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
 }
@@ -274,7 +274,7 @@ img {
   width: 360px;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(243, 166, 90, 0.24), transparent 68%);
+  background: radial-gradient(circle, rgba(185, 106, 47, 0.18), transparent 68%);
 }
 
 .hero__eyebrow,
@@ -439,7 +439,7 @@ img {
 .edition-content p,
 .edition-content li,
 .edition-content blockquote {
-  color: rgba(245, 239, 227, 0.9);
+  color: rgba(31, 40, 51, 0.88);
   line-height: 1.9;
   font-size: 1rem;
 }
@@ -456,22 +456,22 @@ img {
 .edition-content img {
   margin: 24px 0;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(31, 40, 51, 0.1);
+  box-shadow: 0 18px 40px rgba(112, 86, 52, 0.14);
 }
 
 .edition-content blockquote {
   margin: 20px 0;
   padding: 18px 20px;
   border-left: 3px solid var(--accent);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(185, 106, 47, 0.08);
   border-radius: 0 16px 16px 0;
 }
 
 .edition-content code {
   padding: 0.15rem 0.4rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(44, 108, 161, 0.08);
   font-family: "SFMono-Regular", "Monaco", monospace;
   font-size: 0.92em;
 }
@@ -480,7 +480,7 @@ img {
   overflow-x: auto;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(31, 40, 51, 0.05);
 }
 
 .archive-panel__sticky {
@@ -500,16 +500,16 @@ img {
   display: block;
   padding: 18px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(31, 40, 51, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 239, 229, 0.92));
   text-decoration: none;
   transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
 .edition-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(243, 166, 90, 0.45);
-  background: linear-gradient(180deg, rgba(243, 166, 90, 0.08), rgba(255, 255, 255, 0.03));
+  border-color: rgba(185, 106, 47, 0.45);
+  background: linear-gradient(180deg, rgba(185, 106, 47, 0.1), rgba(255, 255, 255, 0.92));
 }
 
 .edition-card__meta {

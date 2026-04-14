@@ -41,18 +41,20 @@ export function truncateText(input: string, maxLength: number): string {
   return `${input.slice(0, maxLength).trimEnd()}…`;
 }
 
-export function formatDate(input: string, locale: string): string {
+export function formatDate(input: string, locale: string, timeZone?: string): string {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
-    timeStyle: "short"
+    timeStyle: "short",
+    timeZone
   }).format(new Date(input));
 }
 
-export function formatDateShort(input: string, locale: string): string {
+export function formatDateShort(input: string, locale: string, timeZone?: string): string {
   return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "long",
-    day: "numeric"
+    day: "numeric",
+    timeZone
   }).format(new Date(input));
 }
 
