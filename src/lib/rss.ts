@@ -24,6 +24,9 @@ const juyaBrandPattern = /橘鸦/gi;
 const juyaPromoHtmlPattern =
   /<p>\s*作者\s*<code>\s*Juya\s*<\/code>\s*，?\s*视频版在同名[\s\S]*?<\/p>/gi;
 const juyaPromoTextPattern = /作者\s*Juya\s*，?\s*视频版在同名[^。！？\n]*[。！？]?/gi;
+const overviewIndexMarkerPattern = /<li>([\s\S]*?)\s*<code>#(\d+)<\/code>\s*<\/li>/gi;
+const detailSectionHeadingPattern =
+  /<h2([^>]*)>((?:(?!<\/h2>)[\s\S])*?)\s*<code>#(\d+)<\/code>\s*<\/h2>/gi;
 
 const sanitizeOptions: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -91,6 +94,38 @@ export function sanitizeEditionHtml(html: string): string {
   return sanitizeHtml(html, sanitizeOptions);
 }
 
+function createEditionAnchorId(sectionNumber: string): string {
+  return `edition-item-${sectionNumber}`;
+}
+
+export function addEditionAnchors(html: string): string {
+  const withDetailAnchors = html.replace(
+    detailSectionHeadingPattern,
+    (match, rawAttributes: string, headingContent: string, sectionNumber: string) => {
+      if (/\sid\s*=\s*["'][^"']+["']/.test(rawAttributes)) {
+        return match;
+      }
+
+      const anchorId = createEditionAnchorId(sectionNumber);
+
+      return `<h2${rawAttributes} id="${anchorId}">${headingContent.trimEnd()} <code>#${sectionNumber}</code></h2>`;
+    }
+  );
+
+  return withDetailAnchors.replace(
+    overviewIndexMarkerPattern,
+    (match, itemContent: string, sectionNumber: string) => {
+      const anchorId = createEditionAnchorId(sectionNumber);
+
+      if (new RegExp(`href="#${anchorId}"`).test(match)) {
+        return match;
+      }
+
+      return `<li>${itemContent.trimEnd()} <a href="#${anchorId}"><code>#${sectionNumber}</code></a></li>`;
+    }
+  );
+}
+
 function upgradeInsecureHttpUrl(value: string | undefined): string | undefined {
   if (!value) {
     return value;
@@ -135,8 +170,9 @@ function normalizeEdition(feed: FeedDefinition, item: RawFeedItem, fetchedAt: st
       ? item["content:encoded"]
       : item.content || item.description || "";
   const cleanedHtml = cleanFeedHtml(feed, rawHtml);
+  const anchoredHtml = addEditionAnchors(cleanedHtml);
 
-  const contentHtml = sanitizeEditionHtml(cleanedHtml);
+  const contentHtml = sanitizeEditionHtml(anchoredHtml);
   const summarySource = cleanFeedText(
     feed,
     stripHtml(item.description || item.contentSnippet || cleanedHtml)
