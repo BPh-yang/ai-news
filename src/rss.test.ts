@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import type { FeedDefinition } from "./config/feeds.js";
-import { cleanFeedHtml, cleanFeedText } from "./lib/rss.js";
+import { cleanFeedHtml, cleanFeedText, sanitizeEditionHtml } from "./lib/rss.js";
 
 const juyaFeed: FeedDefinition = {
   id: "frontline-briefing",
@@ -41,4 +41,28 @@ test("cleanFeedHtml removes juya promotional footer", () => {
   const cleaned = cleanFeedHtml(juyaFeed, html);
 
   assert.equal(cleaned, "<p>正文内容</p>");
+});
+
+test("sanitizeEditionHtml preserves same-page anchor targets and ids", () => {
+  const html = `
+    <p><a href="#1">#1</a></p>
+    <h2 id="1">Anthropic 发布 Claude Opus 4.7 模型</h2>
+  `;
+
+  const sanitized = sanitizeEditionHtml(html);
+
+  assert.match(sanitized, /href="#1"/);
+  assert.match(sanitized, /<h2 id="1">/);
+  assert.doesNotMatch(sanitized, /target="_blank"/);
+  assert.doesNotMatch(sanitized, /rel="noreferrer noopener"/);
+});
+
+test("sanitizeEditionHtml keeps external links opening in a new tab", () => {
+  const html = `<p><a href="https://example.com/story">查看原文</a></p>`;
+
+  const sanitized = sanitizeEditionHtml(html);
+
+  assert.match(sanitized, /href="https:\/\/example.com\/story"/);
+  assert.match(sanitized, /target="_blank"/);
+  assert.match(sanitized, /rel="noreferrer noopener"/);
 });

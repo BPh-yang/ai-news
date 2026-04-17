@@ -46,19 +46,32 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
     "br"
   ],
   allowedAttributes: {
+    "*": ["id"],
     a: ["href", "target", "rel"],
     img: ["src", "alt", "loading"]
   },
   allowedSchemes: ["http", "https"],
   transformTags: {
-    a: (_tagName, attribs) => ({
-      tagName: "a",
-      attribs: {
-        ...attribs,
-        target: "_blank",
-        rel: "noreferrer noopener"
-      }
-    }),
+    a: (_tagName, attribs) => {
+      const { target: _target, rel: _rel, ...restAttribs } = attribs;
+      const href = restAttribs.href?.trim();
+      const upgradedHref = upgradeInsecureHttpUrl(href);
+      const isExternalLink = typeof upgradedHref === "string" && /^https?:\/\//i.test(upgradedHref);
+
+      return {
+        tagName: "a",
+        attribs: {
+          ...restAttribs,
+          ...(upgradedHref ? { href: upgradedHref } : {}),
+          ...(isExternalLink
+            ? {
+                target: "_blank",
+                rel: "noreferrer noopener"
+              }
+            : {})
+        }
+      };
+    },
     img: (_tagName, attribs) => {
       const upgradedSrc = upgradeInsecureHttpUrl(attribs.src);
 
@@ -73,6 +86,10 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
     }
   }
 };
+
+export function sanitizeEditionHtml(html: string): string {
+  return sanitizeHtml(html, sanitizeOptions);
+}
 
 function upgradeInsecureHttpUrl(value: string | undefined): string | undefined {
   if (!value) {
@@ -119,7 +136,7 @@ function normalizeEdition(feed: FeedDefinition, item: RawFeedItem, fetchedAt: st
       : item.content || item.description || "";
   const cleanedHtml = cleanFeedHtml(feed, rawHtml);
 
-  const contentHtml = sanitizeHtml(cleanedHtml, sanitizeOptions);
+  const contentHtml = sanitizeEditionHtml(cleanedHtml);
   const summarySource = cleanFeedText(
     feed,
     stripHtml(item.description || item.contentSnippet || cleanedHtml)
