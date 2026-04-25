@@ -12,6 +12,7 @@ on:
     # 每周一北京时间 09:00 (UTC 01:00)
     - cron: "45 23 * * *"
     - cron: "00 23 * * *"
+    - cron: "00 01 * * *"
 
 permissions:
   contents: read
